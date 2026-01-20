@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Html5Qrcode } from 'html5-qrcode'
-import { QrCode, Link, Camera, X } from 'lucide-react'
+import { QrCode, Link, Camera, X, Megaphone, ScanLine, Globe, Info } from 'lucide-react'
 
 export function AnuncianteDashboard() {
   const navigate = useNavigate()
@@ -159,57 +159,78 @@ export function AnuncianteDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-6">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-gray-800 mb-8">
-          Panel de Anunciante
-        </h1>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Opción 1: Escanear QR */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <QrCode className="text-purple-600" size={32} />
-              <h2 className="text-2xl font-semibold text-gray-800">
-                Escanear QR
-              </h2>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 p-6">
+      <div className="max-w-5xl mx-auto">
+        {/* Header mejorado */}
+        <div className="mb-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl shadow-xl p-8 text-white">
+          <div className="flex items-center gap-4 mb-2">
+            <div className="bg-white/20 p-3 rounded-xl">
+              <Megaphone size={32} />
             </div>
-            <p className="text-gray-600 mb-4">
+            <div>
+              <h1 className="text-4xl font-bold mb-1">
+                Panel de Anunciante
+              </h1>
+              <p className="text-purple-100 text-lg">Crea y envía propuestas de publicidad</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          {/* Opción 1: Escanear QR */}
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 hover:shadow-2xl transition-all">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="bg-purple-100 p-3 rounded-xl text-purple-600">
+                <ScanLine size={28} />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">
+                  Escanear QR
+                </h2>
+                <p className="text-gray-500 text-sm">Usa tu cámara</p>
+              </div>
+            </div>
+            <p className="text-gray-600 mb-6">
               Escanea el código QR del comercio para hacer una propuesta de publicidad.
             </p>
 
             {!scanning ? (
               <button
                 onClick={startScanning}
-                className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-lg"
               >
-                <Camera size={20} /> Iniciar Escáner
+                <Camera size={22} /> Iniciar Escáner
               </button>
             ) : (
               <div className="space-y-4">
                 <div
                   id={qrCodeRegionId}
-                  className="w-full min-h-[300px] rounded-lg overflow-hidden bg-gray-100"
+                  className="w-full min-h-[300px] rounded-xl overflow-hidden bg-gray-100 border-2 border-purple-200"
                 />
                 <button
                   onClick={stopScanning}
-                  className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-gradient-to-r from-red-600 to-pink-600 text-white py-4 rounded-xl font-semibold hover:from-red-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-lg"
                 >
-                  <X size={20} /> Detener Escáner
+                  <X size={22} /> Detener Escáner
                 </button>
               </div>
             )}
           </div>
 
           {/* Opción 2: Ingresar URL */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Link className="text-purple-600" size={32} />
-              <h2 className="text-2xl font-semibold text-gray-800">
-                Ingresar URL
-              </h2>
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 hover:shadow-2xl transition-all">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="bg-indigo-100 p-3 rounded-xl text-indigo-600">
+                <Globe size={28} />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">
+                  Ingresar URL
+                </h2>
+                <p className="text-gray-500 text-sm">URL manual</p>
+              </div>
             </div>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 mb-6">
               Ingresa la URL del código QR del comercio para hacer una propuesta.
             </p>
 
@@ -220,34 +241,54 @@ export function AnuncianteDashboard() {
                   value={urlInput}
                   onChange={(e) => setUrlInput(e.target.value)}
                   placeholder="https://... o ID del comercio"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-5 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-lg"
                 />
               </div>
               <button
                 type="submit"
-                className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-lg"
               >
-                <Link size={20} /> Continuar
+                <Link size={22} /> Continuar
               </button>
             </form>
           </div>
         </div>
 
         {error && (
-          <div className="mt-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-            {error}
+          <div className="mt-6 bg-red-50 border-2 border-red-200 text-red-700 px-6 py-4 rounded-xl shadow-lg">
+            <div className="flex items-center gap-2 font-semibold">
+              <X size={20} />
+              {error}
+            </div>
           </div>
         )}
 
-        <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">
-            Instrucciones
-          </h3>
-          <ul className="space-y-2 text-gray-600">
-            <li>• Escanea el QR del comercio o ingresa su URL</li>
-            <li>• Completa el formulario con los detalles de tu propuesta</li>
-            <li>• Sube una imagen o video de tu publicidad</li>
-            <li>• El comercio revisará y decidirá si acepta tu propuesta</li>
+        <div className="mt-8 bg-gradient-to-br from-white to-purple-50 rounded-2xl shadow-xl p-8 border border-purple-100">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-purple-100 p-2 rounded-lg text-purple-600">
+              <Info size={24} />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-800">
+              Instrucciones
+            </h3>
+          </div>
+          <ul className="space-y-3 text-gray-700">
+            <li className="flex items-start gap-3">
+              <span className="bg-purple-100 text-purple-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">1</span>
+              <span>Escanea el QR del comercio o ingresa su URL</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="bg-purple-100 text-purple-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">2</span>
+              <span>Completa el formulario con los detalles de tu propuesta</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="bg-purple-100 text-purple-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">3</span>
+              <span>Sube una imagen o video de tu publicidad</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="bg-purple-100 text-purple-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mt-0.5">4</span>
+              <span>El comercio revisará y decidirá si acepta tu propuesta</span>
+            </li>
           </ul>
         </div>
       </div>
