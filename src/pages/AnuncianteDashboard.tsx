@@ -32,14 +32,45 @@ export function AnuncianteDashboard() {
       setError('')
       setScanning(true)
 
+      // Verificar si hay cámaras disponibles
+      const devices = await Html5Qrcode.getCameras()
+      if (devices && devices.length === 0) {
+        setError('No se encontraron cámaras disponibles en tu dispositivo.')
+        setScanning(false)
+        return
+      }
+
       const html5QrCode = new Html5Qrcode(qrCodeRegionId)
       scannerRef.current = html5QrCode
 
+      // Intentar primero con cámara trasera (environment), si falla intentar con frontal (user)
+      let cameraId: string | { facingMode: string } | null = null
+      
+      try {
+        // Buscar cámara trasera
+        const backCamera = devices.find((device: any) => 
+          device.label.toLowerCase().includes('back') || 
+          device.label.toLowerCase().includes('rear') ||
+          device.label.toLowerCase().includes('environment')
+        )
+        
+        if (backCamera) {
+          cameraId = backCamera.id
+        } else {
+          // Si no hay cámara trasera, usar la primera disponible
+          cameraId = devices[0].id
+        }
+      } catch {
+        // Si falla, usar facingMode como fallback
+        cameraId = { facingMode: 'environment' }
+      }
+
       await html5QrCode.start(
-        { facingMode: 'environment' }, // Usar cámara trasera
+        cameraId,
         {
           fps: 10,
           qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0,
         },
         (decodedText) => {
           // QR escaneado exitosamente
@@ -51,8 +82,31 @@ export function AnuncianteDashboard() {
       )
     } catch (err: any) {
       console.error('Error starting scanner:', err)
-      setError('Error al iniciar el escáner. Asegúrate de permitir el acceso a la cámara.')
+      
+      let errorMessage = 'Error al iniciar el escáner. '
+      
+      if (err.name === 'NotAllowedError' || err.message?.includes('permission')) {
+        errorMessage += 'Por favor, permite el acceso a la cámara en la configuración de tu navegador.'
+      } else if (err.name === 'NotFoundError' || err.message?.includes('camera')) {
+        errorMessage += 'No se encontró ninguna cámara disponible.'
+      } else if (err.name === 'NotReadableError' || err.message?.includes('readable')) {
+        errorMessage += 'La cámara está siendo usada por otra aplicación. Cierra otras aplicaciones que usen la cámara.'
+      } else {
+        errorMessage += `Detalles: ${err.message || 'Error desconocido'}. Asegúrate de permitir el acceso a la cámara.`
+      }
+      
+      setError(errorMessage)
       setScanning(false)
+      
+      // Limpiar el scanner en caso de error
+      if (scannerRef.current) {
+        try {
+          await scannerRef.current.stop()
+        } catch {
+          // Ignorar errores al detener
+        }
+        scannerRef.current = null
+      }
     }
   }
 
@@ -135,7 +189,7 @@ export function AnuncianteDashboard() {
               <div className="space-y-4">
                 <div
                   id={qrCodeRegionId}
-                  className="w-full rounded-lg overflow-hidden"
+                  className="w-full min-h-[300px] rounded-lg overflow-hidden bg-gray-100"
                 />
                 <button
                   onClick={stopScanning}

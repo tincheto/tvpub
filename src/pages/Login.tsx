@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { Store, Megaphone } from 'lucide-react'
 
@@ -11,8 +11,31 @@ export function Login() {
   const [isSignUp, setIsSignUp] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { signIn, signUp } = useAuth()
+  const { signIn, signUp, profile } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
+  // Obtener parámetros de la URL
+  const returnUrl = searchParams.get('returnUrl')
+  const roleParam = searchParams.get('role')
+
+  // Si hay un parámetro de rol, establecerlo automáticamente
+  useEffect(() => {
+    if (roleParam === 'anunciante') {
+      setRole('anunciante')
+    } else if (roleParam === 'comercio') {
+      setRole('comercio')
+    }
+  }, [roleParam])
+
+  // Si el usuario ya está autenticado y hay una URL de retorno, redirigir
+  useEffect(() => {
+    if (profile && returnUrl) {
+      navigate(returnUrl)
+    } else if (profile && !returnUrl) {
+      navigate('/')
+    }
+  }, [profile, returnUrl, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,7 +55,13 @@ export function Login() {
       } else {
         await signIn(email, password)
       }
-      navigate('/')
+      
+      // Redirigir a la URL de retorno si existe, o al dashboard correspondiente
+      if (returnUrl) {
+        navigate(returnUrl)
+      } else {
+        navigate('/')
+      }
     } catch (err: any) {
       console.error('Error en autenticación:', err)
       setError(err.message || 'Error al autenticar. Verifica la consola para más detalles.')

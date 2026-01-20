@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import { Upload, Send } from 'lucide-react'
 
 export function ProponerPublicidad() {
   const { comercioId } = useParams<{ comercioId: string }>()
-  const { profile } = useAuth()
+  const { profile, loading: authLoading } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [titulo, setTitulo] = useState('')
   const [descripcion, setDescripcion] = useState('')
   const [duracion, setDuracion] = useState(10)
@@ -22,11 +23,28 @@ export function ProponerPublicidad() {
   const [success, setSuccess] = useState(false)
 
   useEffect(() => {
-    // Si está autenticado pero no es anunciante, redirigir
-    if (profile && profile.role !== 'anunciante') {
-      navigate('/login')
+    // Esperar a que termine la carga de autenticación
+    if (authLoading) return
+
+    // Validar que hay un comercioId
+    if (!comercioId) {
+      setError('ID de comercio no válido en la URL')
+      return
     }
-  }, [profile, navigate])
+
+    // Si no está autenticado, redirigir al login con la URL de retorno
+    if (!profile) {
+      const returnUrl = `/proponer/${comercioId}`
+      navigate(`/login?returnUrl=${encodeURIComponent(returnUrl)}&role=anunciante`, { replace: true })
+      return
+    }
+
+    // Si está autenticado pero no es anunciante, redirigir
+    if (profile.role !== 'anunciante') {
+      const returnUrl = `/proponer/${comercioId}`
+      navigate(`/login?returnUrl=${encodeURIComponent(returnUrl)}&role=anunciante`, { replace: true })
+    }
+  }, [profile, authLoading, comercioId, navigate])
 
   const handleImageUpload = async (file: File) => {
     try {
@@ -185,6 +203,50 @@ export function ProponerPublicidad() {
     }
   }
 
+  // Mostrar loading mientras se verifica la autenticación
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-xl">Cargando...</div>
+        </div>
+      </div>
+    )
+  }
+
+  // Si no hay comercioId, mostrar error
+  if (!comercioId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-6 flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            Error
+          </h2>
+          <p className="text-gray-600 mb-6">
+            No se encontró el ID del comercio en la URL.
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+          >
+            Volver al Inicio
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Si no está autenticado, el useEffect ya redirigió, mostrar loading
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-xl">Redirigiendo al login...</div>
+        </div>
+      </div>
+    )
+  }
+
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
@@ -196,27 +258,6 @@ export function ProponerPublicidad() {
           <p className="text-gray-600">
             Tu propuesta ha sido enviada exitosamente. El comercio la revisará pronto.
           </p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!profile) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-6 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            Inicia Sesión Requerido
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Necesitas estar autenticado como anunciante para hacer una propuesta.
-          </p>
-          <button
-            onClick={() => navigate('/login')}
-            className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
-          >
-            Ir a Iniciar Sesión
-          </button>
         </div>
       </div>
     )
