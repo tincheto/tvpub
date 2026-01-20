@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate, useLocation } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import { Upload, Send } from 'lucide-react'
@@ -8,7 +8,6 @@ export function ProponerPublicidad() {
   const { comercioId } = useParams<{ comercioId: string }>()
   const { profile, loading: authLoading } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
   const [titulo, setTitulo] = useState('')
   const [descripcion, setDescripcion] = useState('')
   const [duracion, setDuracion] = useState(10)

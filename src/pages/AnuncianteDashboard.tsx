@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Html5Qrcode } from 'html5-qrcode'
-import { QrCode, Link, Camera, X, Megaphone, ScanLine, Globe, Info } from 'lucide-react'
+import { Link, Camera, X, Megaphone, ScanLine, Globe, Info } from 'lucide-react'
 
 export function AnuncianteDashboard() {
   const navigate = useNavigate()
