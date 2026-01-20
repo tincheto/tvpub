@@ -175,7 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         profileData.comercio_id = comercioId
       } else {
         // Si es anunciante, crear registro en tabla anunciantes usando función helper
-        const { data: anuncianteId, error: anuncianteError } = await supabase.rpc(
+        const { error: anuncianteError } = await supabase.rpc(
           'create_anunciante',
           {
             p_nombre: nombre,

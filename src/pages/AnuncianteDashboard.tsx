@@ -1,11 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
 import { Html5Qrcode } from 'html5-qrcode'
 import { QrCode, Link, Camera, X } from 'lucide-react'
 
 export function AnuncianteDashboard() {
-  const { profile } = useAuth()
   const navigate = useNavigate()
   const [urlInput, setUrlInput] = useState('')
   const [scanning, setScanning] = useState(false)
@@ -47,7 +45,7 @@ export function AnuncianteDashboard() {
           // QR escaneado exitosamente
           handleQrScanned(decodedText)
         },
-        (errorMessage) => {
+        () => {
           // Ignorar errores de escaneo continuo
         }
       )
