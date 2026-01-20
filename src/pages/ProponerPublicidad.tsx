@@ -20,29 +20,59 @@ export function ProponerPublicidad() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [checkingSession, setCheckingSession] = useState(true)
+  const [hasSession, setHasSession] = useState(false)
+
+  // Verificar sesión al cargar el componente
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setHasSession(!!session)
+      setCheckingSession(false)
+    }
+    checkSession()
+  }, [])
 
   useEffect(() => {
-    // Esperar a que termine la carga de autenticación
-    if (authLoading) return
+    const checkAuthAndRedirect = async () => {
+      // Validar que hay un comercioId
+      if (!comercioId) {
+        setError('ID de comercio no válido en la URL')
+        return
+      }
 
-    // Validar que hay un comercioId
-    if (!comercioId) {
-      setError('ID de comercio no válido en la URL')
-      return
+      // Verificar sesión de Supabase directamente (más confiable que esperar el contexto)
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      // Si no hay sesión, redirigir al login
+      if (!session) {
+        const returnUrl = `/proponer/${comercioId}`
+        navigate(`/login?returnUrl=${encodeURIComponent(returnUrl)}&role=anunciante`, { replace: true })
+        return
+      }
+
+      // Esperar a que termine la carga de autenticación del contexto
+      if (authLoading) return
+
+      // Si no hay profile pero hay sesión, esperar un poco más o redirigir
+      if (!profile) {
+        // Esperar un poco más para que el contexto cargue el profile
+        const timeout = setTimeout(() => {
+          const returnUrl = `/proponer/${comercioId}`
+          navigate(`/login?returnUrl=${encodeURIComponent(returnUrl)}&role=anunciante`, { replace: true })
+        }, 2000)
+        
+        return () => clearTimeout(timeout)
+      }
+
+      // Si está autenticado pero no es anunciante, redirigir
+      if (profile.role !== 'anunciante') {
+        const returnUrl = `/proponer/${comercioId}`
+        navigate(`/login?returnUrl=${encodeURIComponent(returnUrl)}&role=anunciante`, { replace: true })
+      }
     }
 
-    // Si no está autenticado, redirigir al login con la URL de retorno
-    if (!profile) {
-      const returnUrl = `/proponer/${comercioId}`
-      navigate(`/login?returnUrl=${encodeURIComponent(returnUrl)}&role=anunciante`, { replace: true })
-      return
-    }
-
-    // Si está autenticado pero no es anunciante, redirigir
-    if (profile.role !== 'anunciante') {
-      const returnUrl = `/proponer/${comercioId}`
-      navigate(`/login?returnUrl=${encodeURIComponent(returnUrl)}&role=anunciante`, { replace: true })
-    }
+    checkAuthAndRedirect()
   }, [profile, authLoading, comercioId, navigate])
 
   const handleImageUpload = async (file: File) => {
@@ -203,11 +233,12 @@ export function ProponerPublicidad() {
   }
 
   // Mostrar loading mientras se verifica la autenticación
-  if (authLoading) {
+  if (authLoading || checkingSession) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-6 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-xl">Cargando...</div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mb-4"></div>
+          <div className="text-xl text-gray-700">Verificando autenticación...</div>
         </div>
       </div>
     )
@@ -235,12 +266,13 @@ export function ProponerPublicidad() {
     )
   }
 
-  // Si no está autenticado, el useEffect ya redirigió, mostrar loading
-  if (!profile) {
+  // Si no hay sesión o no está autenticado, el useEffect ya redirigió, mostrar loading
+  if (!hasSession || !profile) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-6 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-xl">Redirigiendo al login...</div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mb-4"></div>
+          <div className="text-xl text-gray-700">Redirigiendo al login...</div>
         </div>
       </div>
     )
